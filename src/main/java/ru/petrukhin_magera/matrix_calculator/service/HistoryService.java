@@ -7,7 +7,7 @@ import ru.petrukhin_magera.matrix_calculator.model.dto.HistoryDto;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
-import java.util.concurrent.atomic.AtomicLong;
+
 
 @Service
 @SessionScope

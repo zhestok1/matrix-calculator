@@ -1,7 +1,6 @@
 package ru.petrukhin_magera.matrix_calculator.model.dto;
 
 import jakarta.validation.constraints.NotEmpty;
-import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -12,18 +11,11 @@ import ru.petrukhin_magera.matrix_calculator.model.Matrix;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class HistoryDto {
-
-
-    private Long id;
-
-    @NotEmpty
-    private String operation;
+public class MatrixRequestUnary {
 
     private Matrix matrix1;
 
-    private Matrix matrix2;
+    @NotEmpty
+    private String matrixOperation;
 
-    @NotNull
-    private Object result;
 }

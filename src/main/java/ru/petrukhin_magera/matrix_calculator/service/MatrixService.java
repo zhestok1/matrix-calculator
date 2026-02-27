@@ -2,6 +2,7 @@ package ru.petrukhin_magera.matrix_calculator.service;
 
 import org.springframework.stereotype.Service;
 import ru.petrukhin_magera.matrix_calculator.model.Matrix;
+import ru.petrukhin_magera.matrix_calculator.model.MatrixDeterminant;
 
 
 @Service
@@ -72,6 +73,41 @@ public class MatrixService {
         else {
             throw new IllegalArgumentException();
         }
+    }
+
+    public double trace(Matrix matrix1) {
+
+        if (matrix1.getCols() == matrix1.getRows()) {
+
+            double[][] newData = matrix1.getData();
+            double trace = 0;
+
+            for (int i = 0; i < matrix1.getCols(); i++) {
+                trace += newData[i][i];
+            }
+
+            return trace;
+        }
+        else {
+            throw new IllegalArgumentException("Size must be normal!");
+        }
+
+
+
+    }
+
+    public double determinant(Matrix matrix1) {
+
+           if (matrix1.getCols() == matrix1.getRows()) {
+
+               double[][] newData = matrix1.getData();
+               double det = MatrixDeterminant.determinant(newData);
+
+               return det;
+           }
+           else {
+               throw new IllegalArgumentException("Size not N на N");
+           }
     }
 
     //    private String matrixToString(Matrix matrix) {

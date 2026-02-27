@@ -1,41 +1,24 @@
 package ru.petrukhin_magera.matrix_calculator.model;
 
+import jakarta.validation.constraints.NotNull;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
+@Getter
+@Setter
+@AllArgsConstructor
+@NoArgsConstructor
 public class Matrix {
 
+    @NotNull
     private int rows;
+
+    @NotNull
     private int cols;
+
+    @NotNull
     private double[][] data;
 
-    public Matrix(int rows, int cols, double[][] data) {
-        this.rows = rows;
-        this.cols = cols;
-        this.data = data;
-    }
-
-    public Matrix() {
-    }
-
-    public int getRows() {
-        return rows;
-    }
-
-    public void setRows(int rows) {
-        this.rows = rows;
-    }
-
-    public int getCols() {
-        return cols;
-    }
-
-    public void setCols(int cols) {
-        this.cols = cols;
-    }
-
-    public double[][] getData() {
-        return data;
-    }
-
-    public void setData(double[][] data) {
-        this.data = data;
-    }
 }
