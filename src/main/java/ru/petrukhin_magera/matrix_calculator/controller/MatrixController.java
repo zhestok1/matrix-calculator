@@ -20,19 +20,18 @@ public class MatrixController {
 
     private final MatrixService matrixService;
 
+
     public MatrixController(MatrixService matrixService) {
         this.matrixService = matrixService;
     }
 
     @PostMapping("/binary")
-    public ResponseEntity<Matrix> binaryCalculate(@RequestBody MatrixRequestBinary matrixRequestBinary, HttpSession httpSession) {
+    public ResponseEntity<?> binaryCalculate(@RequestBody MatrixRequestBinary matrixRequestBinary, HttpSession httpSession) {
         String matrixOperation = matrixRequestBinary.getMatrixOperation();
-
-        Matrix result = null;
 
         if (matrixOperation.equals("ADD") || matrixOperation.equals("SUB")
                 || matrixOperation.equals("MUL")) {
-            result = switch (matrixOperation) {
+            Matrix result = switch (matrixOperation) {
                 case "ADD" -> matrixService.add(matrixRequestBinary.getMatrix1(),
                         matrixRequestBinary.getMatrix2());
                 case "SUB" -> matrixService.sub(matrixRequestBinary.getMatrix1(),
@@ -42,20 +41,8 @@ public class MatrixController {
                 default -> throw new IllegalStateException("Unexpected value: " + matrixOperation);
             };
 
-            HistoryService historyService = (HistoryService) httpSession.getAttribute("historyService");
-            if (historyService == null) {
-                historyService = new HistoryService();
-                httpSession.setAttribute("historyService", historyService);
-            }
+            addToHistory(httpSession, matrixOperation, matrixRequestBinary.getMatrix1(), matrixRequestBinary.getMatrix2(), result);
 
-            HistoryDto historyDto = new HistoryDto();
-
-            historyDto.setOperation(matrixOperation);
-            historyDto.setMatrix1(matrixRequestBinary.getMatrix1());
-            historyDto.setMatrix2(matrixRequestBinary.getMatrix2());
-            historyDto.setResult(result);
-
-            historyService.add(historyDto);
             return ResponseEntity
                     .status(HttpStatus.CREATED)
                     .body(result);
@@ -66,32 +53,20 @@ public class MatrixController {
     }
 
     @PostMapping("/unary")
-    public ResponseEntity<Object> unaryCalculate(@RequestBody MatrixRequestUnary matrixRequestUnary, HttpSession httpSession) {
+    public ResponseEntity<?> unaryCalculate(@RequestBody MatrixRequestUnary matrixRequestUnary, HttpSession httpSession) {
         String matrixOperation = matrixRequestUnary.getMatrixOperation();
 
-        Object result = null;
+
 
         if (matrixOperation.equals("TRACE") || matrixOperation.equals("DET")) {
-            result = switch (matrixOperation) {
+            Object result = switch (matrixOperation) {
                 case "TRACE" -> matrixService.trace(matrixRequestUnary.getMatrix1());
                 case "DET" -> matrixService.determinant(matrixRequestUnary.getMatrix1());
                 default -> throw new IllegalStateException("Unexpected value: " + matrixOperation);
             };
 
-            HistoryService historyService = (HistoryService) httpSession.getAttribute("historyService");
-            if (historyService == null) {
-                historyService = new HistoryService();
-                httpSession.setAttribute("historyService", historyService);
-            }
+            addToHistory(httpSession, matrixOperation, matrixRequestUnary.getMatrix1(), null, result);
 
-            HistoryDto historyDto = new HistoryDto();
-
-            historyDto.setOperation(matrixOperation);
-            historyDto.setMatrix1(matrixRequestUnary.getMatrix1());
-            historyDto.setMatrix2(null);
-            historyDto.setResult(result);
-
-            historyService.add(historyDto);
             return ResponseEntity
                     .status(HttpStatus.CREATED)
                     .body(result);
@@ -133,5 +108,23 @@ public class MatrixController {
         return ResponseEntity
                 .status(HttpStatus.OK)
                 .build();
+    }
+
+    private void addToHistory(HttpSession httpSession, String operation, Matrix matrix1, Matrix matrix2, Object result) {
+
+        HistoryService historyService = (HistoryService) httpSession.getAttribute("historyService");
+
+        if (historyService == null) {
+            historyService = new HistoryService();
+            httpSession.setAttribute("historyService", historyService);
+        }
+
+        HistoryDto historyDto = new HistoryDto();
+        historyDto.setOperation(operation);
+        historyDto.setMatrix1(matrix1);
+        historyDto.setMatrix2(matrix2);
+        historyDto.setResult(result);
+
+        historyService.add(historyDto);
     }
 }
