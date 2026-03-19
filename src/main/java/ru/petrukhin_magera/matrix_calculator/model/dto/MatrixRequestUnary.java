@@ -2,6 +2,7 @@ package ru.petrukhin_magera.matrix_calculator.model.dto;
 
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Pattern;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -14,10 +15,11 @@ import ru.petrukhin_magera.matrix_calculator.model.Matrix;
 @AllArgsConstructor
 public class MatrixRequestUnary {
 
-    @NotNull
+    @NotNull(message = "Matrix must be in unary operation!")
     private Matrix matrix1;
 
-    @NotEmpty
+    @NotEmpty(message = "Operation Type cannot be null")
+    @Pattern(regexp = "TRACE|DET", message = "Operation must be TRACE or DET")
     private String matrixOperation;
 
 }

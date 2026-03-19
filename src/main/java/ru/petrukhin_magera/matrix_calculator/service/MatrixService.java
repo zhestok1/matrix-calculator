@@ -26,7 +26,7 @@ public class MatrixService {
 
         }
         else {
-            throw new IllegalArgumentException();
+            throw new IllegalArgumentException("Size must have formal m×n and m×n!");
         }
 
     }
@@ -48,7 +48,7 @@ public class MatrixService {
 
         }
         else {
-            throw new IllegalArgumentException();
+            throw new IllegalArgumentException("Size must have formal m×n and m×n!");
         }
     }
 
@@ -71,7 +71,7 @@ public class MatrixService {
             return new Matrix(matrix1.getRows(), matrix2.getCols(), newData);
         }
         else {
-            throw new IllegalArgumentException();
+            throw new IllegalArgumentException("Size must have format n×m and m×k!");
         }
     }
 
@@ -89,7 +89,7 @@ public class MatrixService {
             return trace;
         }
         else {
-            throw new IllegalArgumentException("Size must be normal!");
+            throw new IllegalArgumentException("Size must have formal n×n!");
         }
 
 
@@ -106,7 +106,7 @@ public class MatrixService {
                return det;
            }
            else {
-               throw new IllegalArgumentException("Size not N на N");
+               throw new IllegalArgumentException("Size must have format n×n!");
            }
     }
 
