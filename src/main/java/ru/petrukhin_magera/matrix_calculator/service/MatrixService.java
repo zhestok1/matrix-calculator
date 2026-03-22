@@ -1,14 +1,17 @@
 package ru.petrukhin_magera.matrix_calculator.service;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import ru.petrukhin_magera.matrix_calculator.model.Matrix;
 import ru.petrukhin_magera.matrix_calculator.model.MatrixDeterminant;
 
-
+@Slf4j
 @Service
 public class MatrixService {
 
     public Matrix add(Matrix matrix1, Matrix matrix2) {
+        log.debug("Проверка размеров матриц для сложения: {}x{} и {}x{}",
+                matrix1.getRows(), matrix1.getCols(), matrix2.getRows(), matrix2.getCols());
 
         if (matrix1.getRows() == matrix2.getRows() && matrix1.getCols() == matrix2.getCols()) {
 
@@ -17,21 +20,25 @@ public class MatrixService {
             double[][] m2 = matrix2.getData();
 
             for (int i = 0; i < matrix1.getRows(); i++) {
-                for (int j  = 0; j < matrix1.getCols(); j++) {
+                for (int j = 0; j < matrix1.getCols(); j++) {
                     newData[i][j] = m1[i][j] + m2[i][j];
                 }
             }
 
+            log.debug("Сложение матриц выполнено успешно");
             return new Matrix(matrix1.getRows(), matrix1.getCols(), newData);
 
-        }
-        else {
+        } else {
+            log.warn("Ошибка сложения: несовместимые размеры матриц {}x{} и {}x{}",
+                    matrix1.getRows(), matrix1.getCols(), matrix2.getRows(), matrix2.getCols());
             throw new IllegalArgumentException("Size must have formal m×n and m×n!");
         }
-
     }
 
     public Matrix sub(Matrix matrix1, Matrix matrix2) {
+        log.debug("Проверка размеров матриц для вычитания: {}x{} и {}x{}",
+                matrix1.getRows(), matrix1.getCols(), matrix2.getRows(), matrix2.getCols());
+
         if (matrix1.getRows() == matrix2.getRows() && matrix1.getCols() == matrix2.getCols()) {
 
             double[][] newData = new double[matrix1.getRows()][matrix1.getCols()];
@@ -39,20 +46,24 @@ public class MatrixService {
             double[][] m2 = matrix2.getData();
 
             for (int i = 0; i < matrix1.getRows(); i++) {
-                for (int j  = 0; j < matrix1.getCols(); j++) {
+                for (int j = 0; j < matrix1.getCols(); j++) {
                     newData[i][j] = m1[i][j] - m2[i][j];
                 }
             }
 
+            log.debug("Вычитание матриц выполнено успешно");
             return new Matrix(matrix1.getRows(), matrix1.getCols(), newData);
 
-        }
-        else {
+        } else {
+            log.warn("Ошибка вычитания: несовместимые размеры матриц {}x{} и {}x{}",
+                    matrix1.getRows(), matrix1.getCols(), matrix2.getRows(), matrix2.getCols());
             throw new IllegalArgumentException("Size must have formal m×n and m×n!");
         }
     }
 
     public Matrix mul(Matrix matrix1, Matrix matrix2) {
+        log.debug("Проверка размеров матриц для умножения: {}x{} и {}x{}",
+                matrix1.getRows(), matrix1.getCols(), matrix2.getRows(), matrix2.getCols());
 
         if (matrix1.getCols() == matrix2.getRows()) {
 
@@ -68,14 +79,20 @@ public class MatrixService {
                 }
             }
 
+            log.debug("Умножение матриц выполнено успешно, размер результата: {}x{}",
+                    matrix1.getRows(), matrix2.getCols());
             return new Matrix(matrix1.getRows(), matrix2.getCols(), newData);
-        }
-        else {
+
+        } else {
+            log.warn("Ошибка умножения: несовместимые размеры матриц {}x{} и {}x{}",
+                    matrix1.getRows(), matrix1.getCols(), matrix2.getRows(), matrix2.getCols());
             throw new IllegalArgumentException("Size must have format n×m and m×k!");
         }
     }
 
     public double trace(Matrix matrix1) {
+        log.debug("Проверка размера матрицы для вычисления следа: {}x{}",
+                matrix1.getRows(), matrix1.getCols());
 
         if (matrix1.getCols() == matrix1.getRows()) {
 
@@ -86,63 +103,32 @@ public class MatrixService {
                 trace += newData[i][i];
             }
 
+            log.debug("След матрицы вычислен успешно: {}", trace);
             return trace;
-        }
-        else {
+
+        } else {
+            log.warn("Ошибка вычисления следа: матрица не квадратная ({}x{})",
+                    matrix1.getRows(), matrix1.getCols());
             throw new IllegalArgumentException("Size must have formal n×n!");
         }
-
-
-
     }
 
     public double determinant(Matrix matrix1) {
+        log.debug("Проверка размера матрицы для вычисления определителя: {}x{}",
+                matrix1.getRows(), matrix1.getCols());
 
-           if (matrix1.getCols() == matrix1.getRows()) {
+        if (matrix1.getCols() == matrix1.getRows()) {
 
-               double[][] newData = matrix1.getData();
-               double det = MatrixDeterminant.determinant(newData);
+            double[][] newData = matrix1.getData();
+            double det = MatrixDeterminant.determinant(newData);
 
-               return det;
-           }
-           else {
-               throw new IllegalArgumentException("Size must have format n×n!");
-           }
+            log.debug("Определитель матрицы вычислен успешно: {}", det);
+            return det;
+
+        } else {
+            log.warn("Ошибка вычисления определителя: матрица не квадратная ({}x{})",
+                    matrix1.getRows(), matrix1.getCols());
+            throw new IllegalArgumentException("Size must have format n×n!");
+        }
     }
-
-    //    private String matrixToString(Matrix matrix) {
-//        StringBuilder sb = new StringBuilder();
-//        double[][] data = matrix.getData();
-//
-//        for (int i = 0; i < matrix.getRows(); i++) {
-//            for (int j = 0; j < matrix.getCols(); j++) {
-//                sb.append(data[i][j]);
-//                if (j < matrix.getCols() - 1) {
-//                    sb.append(",");
-//                }
-//            }
-//            if (i < matrix.getRows() - 1) {
-//                sb.append(";");
-//            }
-//        }
-//        return sb.toString();
-//    }
-
-    //    public Matrix stringToMatrix(String matrixStr) {
-//        String[] rows = matrixStr.split(";");
-//        int rowCount = rows.length;
-//        int colCount = rows[0].split(",").length;
-//
-//        double[][] data = new double[rowCount][colCount];
-//
-//        for (int i = 0; i < rowCount; i++) {
-//            String[] cols = rows[i].split(",");
-//            for (int j = 0; j < colCount; j++) {
-//                data[i][j] = Double.parseDouble(cols[j]);
-//            }
-//        }
-//
-//        return new Matrix(rowCount, colCount, data);
-//    }
-
 }

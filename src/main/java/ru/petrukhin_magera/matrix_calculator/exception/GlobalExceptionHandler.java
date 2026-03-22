@@ -1,7 +1,6 @@
 package ru.petrukhin_magera.matrix_calculator.exception;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -11,10 +10,9 @@ import ru.petrukhin_magera.matrix_calculator.model.dto.ExceptionDto;
 
 import java.time.LocalDateTime;
 
+@Slf4j
 @ControllerAdvice
 public class GlobalExceptionHandler {
-
-    private static final Logger logger = LoggerFactory.getLogger(GlobalExceptionHandler.class);
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ExceptionDto> handleValidationExceptions(
@@ -22,8 +20,8 @@ public class GlobalExceptionHandler {
 
         String message = ex.getBindingResult().getAllErrors().get(0).getDefaultMessage();
 
-        // Логируем ошибку валидации
-        logger.warn("Ошибка валидации: {}", message);
+        log.warn("Ошибка валидации запроса: {}", message);
+        log.debug("Детали ошибки валидации: {}", ex.getBindingResult().getAllErrors());
 
         ExceptionDto exceptionDto = new ExceptionDto(
                 "Ошибка валидации",
@@ -40,8 +38,7 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ExceptionDto> handleIllegalArgumentException(
             IllegalArgumentException ex) {
 
-        // Логируем ошибку в данных
-        logger.warn("Ошибка в данных: {}", ex.getMessage());
+        log.warn("Ошибка в данных запроса: {}", ex.getMessage());
 
         ExceptionDto exceptionDto = new ExceptionDto(
                 "Ошибка в данных",
@@ -58,8 +55,7 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ExceptionDto> handleGenericException(
             Exception ex) {
 
-        // Логируем непредвиденную ошибку с полным стек-трейсом
-        logger.error("Непредвиденная внутренняя ошибка сервера: ", ex);
+        log.error("Непредвиденная внутренняя ошибка сервера: ", ex);
 
         ExceptionDto exceptionDto = new ExceptionDto(
                 "Внутренняя ошибка сервера",

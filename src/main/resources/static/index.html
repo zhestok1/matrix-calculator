@@ -1,0 +1,831 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Matrix Calculator - Визуальный редактор матриц</title>
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            margin: 0;
+            padding: 20px;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+        }
+
+        .header {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 30px;
+            cursor: pointer;
+            transition: transform 0.3s;
+        }
+
+        .header:hover {
+            transform: scale(1.05);
+        }
+
+        .calculator-icon {
+            font-size: 48px;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                transform: scale(1);
+            }
+            50% {
+                transform: scale(1.1);
+            }
+        }
+
+        h1 {
+            color: white;
+            margin: 0;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .calculator-panel {
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            padding: 24px;
+            margin-bottom: 30px;
+        }
+
+        .operation-selector {
+            margin-bottom: 24px;
+        }
+
+        .operation-selector label {
+            font-weight: 600;
+            color: #2c3e50;
+            display: block;
+            margin-bottom: 8px;
+        }
+
+        .operation-selector select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 16px;
+            background: white;
+            cursor: pointer;
+            transition: border-color 0.3s;
+        }
+
+        .operation-selector select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .matrices-section {
+            display: flex;
+            gap: 24px;
+            flex-wrap: wrap;
+            margin-bottom: 24px;
+        }
+
+        .matrix-card {
+            flex: 1;
+            min-width: 400px;
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 20px;
+            border: 1px solid #e9ecef;
+            transition: box-shadow 0.3s;
+        }
+
+        .matrix-card:hover {
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+
+        .matrix-card h3 {
+            margin: 0 0 12px 0;
+            color: #495057;
+            font-size: 18px;
+        }
+
+        .matrix-controls {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 16px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .dimension-control {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: white;
+            padding: 6px 12px;
+            border-radius: 8px;
+            border: 1px solid #dee2e6;
+        }
+
+        .dimension-control label {
+            font-size: 14px;
+            font-weight: 600;
+            color: #495057;
+        }
+
+        .dimension-control input {
+            width: 70px;
+            padding: 6px;
+            border: 1px solid #ced4da;
+            border-radius: 4px;
+            text-align: center;
+            font-size: 14px;
+        }
+
+        .dimension-control input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .apply-dimension-btn {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 12px;
+            transition: background 0.3s;
+        }
+
+        .apply-dimension-btn:hover {
+            background: #5a67d8;
+        }
+
+        .matrix-grid {
+            overflow-x: auto;
+            margin-top: 16px;
+        }
+
+        .matrix-table {
+            border-collapse: collapse;
+            background: white;
+            margin: 0 auto;
+        }
+
+        .matrix-table td {
+            border: 1px solid #dee2e6;
+            padding: 0;
+        }
+
+        .matrix-table input {
+            width: 70px;
+            height: 45px;
+            text-align: center;
+            border: none;
+            padding: 8px;
+            font-size: 14px;
+            font-family: monospace;
+            transition: background 0.2s;
+        }
+
+        .matrix-table input:focus {
+            outline: none;
+            background: #e3f2fd;
+        }
+
+        .matrix-table input:hover {
+            background: #f8f9fa;
+        }
+
+        .error-badge {
+            color: #e74c3c;
+            font-size: 12px;
+            margin-top: 8px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .calculate-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 14px 28px;
+            font-size: 16px;
+            font-weight: 600;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: transform 0.1s, box-shadow 0.3s;
+            width: 100%;
+        }
+
+        .calculate-btn:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+
+        .calculate-btn:active {
+            transform: translateY(0);
+        }
+
+        .calculate-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .result-section {
+            margin-top: 24px;
+            padding: 16px;
+            background: #e8f4fd;
+            border-radius: 12px;
+            border-left: 4px solid #667eea;
+        }
+
+        .result-section h3 {
+            margin: 0 0 12px 0;
+            color: #2c3e50;
+        }
+
+        .result-content {
+            font-family: 'Courier New', monospace;
+            font-size: 16px;
+            font-weight: 500;
+            word-break: break-all;
+            white-space: pre-wrap;
+            overflow-x: auto;
+        }
+
+        .result-matrix {
+            border-collapse: collapse;
+            background: white;
+            margin-top: 10px;
+        }
+
+        .result-matrix td {
+            border: 1px solid #dee2e6;
+            padding: 8px 12px;
+            text-align: center;
+            font-family: monospace;
+        }
+
+        .error-message {
+            color: #e74c3c;
+            background: #fdf0ef;
+            padding: 12px;
+            border-radius: 8px;
+            margin-top: 16px;
+            border-left: 3px solid #e74c3c;
+        }
+
+        .history-panel {
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            padding: 24px;
+        }
+
+        .history-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            gap: 16px;
+        }
+
+        .history-header h2 {
+            margin: 0;
+            color: #2c3e50;
+        }
+
+        .clear-history-btn {
+            background: #e74c3c;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: background 0.3s;
+        }
+
+        .clear-history-btn:hover {
+            background: #c0392b;
+        }
+
+        .history-list {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            max-height: 500px;
+            overflow-y: auto;
+        }
+
+        .history-item {
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 16px;
+            border: 1px solid #e9ecef;
+            transition: box-shadow 0.2s;
+        }
+
+        .history-item:hover {
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+
+        .history-header-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+
+        .history-operation {
+            font-weight: 700;
+            color: #667eea;
+            background: #e9ecef;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 14px;
+        }
+
+        .history-time {
+            color: #6c757d;
+            font-size: 12px;
+        }
+
+        .history-details {
+            font-size: 13px;
+            color: #495057;
+            margin-bottom: 12px;
+            word-break: break-word;
+        }
+
+        .history-result {
+            font-family: 'Courier New', monospace;
+            background: white;
+            padding: 8px 12px;
+            border-radius: 8px;
+            margin: 8px 0;
+            border-left: 3px solid #27ae60;
+            font-size: 13px;
+            word-break: break-all;
+        }
+
+        .repeat-btn {
+            background: #2ecc71;
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 500;
+            transition: background 0.3s;
+        }
+
+        .repeat-btn:hover {
+            background: #27ae60;
+        }
+
+        .loading {
+            opacity: 0.6;
+            pointer-events: none;
+        }
+
+        footer {
+            text-align: center;
+            margin-top: 30px;
+            color: rgba(255,255,255,0.8);
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="header" id="refreshIcon">
+        <div class="calculator-icon">🧮</div>
+        <h1>Matrix Calculator</h1>
+        <div class="calculator-icon" style="opacity: 0.5;">📐</div>
+    </div>
+
+    <div class="calculator-panel">
+        <div class="operation-selector">
+            <label for="operation">Выберите операцию:</label>
+            <select id="operation">
+                <option value="ADD">➕ ADD - Сложение матриц</option>
+                <option value="SUB">➖ SUB - Вычитание матриц</option>
+                <option value="MUL">✖️ MUL - Умножение матриц</option>
+                <option value="TRACE">📐 TRACE - След матрицы</option>
+                <option value="DET">🔢 DET - Определитель матрицы</option>
+            </select>
+        </div>
+
+        <div class="matrices-section" id="matricesSection">
+            <div class="matrix-card" id="matrix1Card">
+                <h3>Матрица A</h3>
+                <div class="matrix-controls">
+                    <div class="dimension-control">
+                        <label>Строки:</label>
+                        <input type="number" id="matrix1Rows" min="1" max="8" value="3">
+                    </div>
+                    <div class="dimension-control">
+                        <label>Столбцы:</label>
+                        <input type="number" id="matrix1Cols" min="1" max="8" value="3">
+                    </div>
+                    <button class="apply-dimension-btn" onclick="resizeMatrix('matrix1')">Применить</button>
+                </div>
+                <div id="matrix1Grid" class="matrix-grid"></div>
+                <div id="matrix1Error" class="error-badge" style="display: none;"></div>
+            </div>
+            <div class="matrix-card" id="matrix2Card">
+                <h3>Матрица B</h3>
+                <div class="matrix-controls">
+                    <div class="dimension-control">
+                        <label>Строки:</label>
+                        <input type="number" id="matrix2Rows" min="1" max="8" value="3">
+                    </div>
+                    <div class="dimension-control">
+                        <label>Столбцы:</label>
+                        <input type="number" id="matrix2Cols" min="1" max="8" value="3">
+                    </div>
+                    <button class="apply-dimension-btn" onclick="resizeMatrix('matrix2')">Применить</button>
+                </div>
+                <div id="matrix2Grid" class="matrix-grid"></div>
+                <div id="matrix2Error" class="error-badge" style="display: none;"></div>
+            </div>
+        </div>
+
+        <button class="calculate-btn" id="calculateBtn">Вычислить</button>
+
+        <div class="result-section" id="resultSection" style="display: none;">
+            <h3>Результат:</h3>
+            <div class="result-content" id="resultContent"></div>
+        </div>
+
+        <div id="errorMessage" class="error-message" style="display: none;"></div>
+    </div>
+
+    <div class="history-panel">
+        <div class="history-header">
+            <h2>📜 История операций</h2>
+            <button class="clear-history-btn" id="clearHistoryBtn">Очистить историю</button>
+        </div>
+        <div id="historyList" class="history-list">
+            <div style="text-align: center; color: #6c757d; padding: 40px;">История пуста</div>
+        </div>
+    </div>
+    <footer>Нажмите на иконку калькулятора 🧮 для очистки истории и обновления страницы</footer>
+</div>
+
+<script>
+    const API_BASE = '/calculate';
+
+    // Хранилище данных матриц
+    let matrix1Data = [[1,2,3],[4,5,6],[7,8,9]];
+    let matrix2Data = [[9,8,7],[6,5,4],[3,2,1]];
+
+    // Элементы DOM
+    const operationSelect = document.getElementById('operation');
+    const calculateBtn = document.getElementById('calculateBtn');
+    const resultSection = document.getElementById('resultSection');
+    const resultContent = document.getElementById('resultContent');
+    const errorMessageDiv = document.getElementById('errorMessage');
+    const historyListDiv = document.getElementById('historyList');
+    const clearHistoryBtn = document.getElementById('clearHistoryBtn');
+    const refreshIcon = document.getElementById('refreshIcon');
+    const matrix2Card = document.getElementById('matrix2Card');
+
+    // Обновление видимости матрицы B
+    function updateMatricesVisibility() {
+        const operation = operationSelect.value;
+        if (operation === 'TRACE' || operation === 'DET') {
+            matrix2Card.style.display = 'none';
+        } else {
+            matrix2Card.style.display = 'block';
+        }
+    }
+
+    // Создание сетки матрицы
+    function createMatrixGrid(containerId, data, matrixId) {
+        const container = document.getElementById(containerId);
+        if (!container) return;
+
+        const rows = data.length;
+        const cols = data[0]?.length || 0;
+
+        let table = '<table class="matrix-table">';
+        for (let i = 0; i < rows; i++) {
+            table += '<tr>';
+            for (let j = 0; j < cols; j++) {
+                table += `<td><input type="number" step="any" value="${data[i][j]}"
+                    onchange="updateMatrixValue('${matrixId}', ${i}, ${j}, this.value)"></td>`;
+            }
+            table += '</tr>';
+        }
+        table += '</table>';
+        container.innerHTML = table;
+    }
+
+    // Обновление значения в матрице
+    function updateMatrixValue(matrixId, row, col, value) {
+        const numValue = parseFloat(value);
+        if (matrixId === 'matrix1') {
+            if (!isNaN(numValue)) {
+                matrix1Data[row][col] = numValue;
+            }
+        } else if (matrixId === 'matrix2') {
+            if (!isNaN(numValue)) {
+                matrix2Data[row][col] = numValue;
+            }
+        }
+    }
+
+    // Изменение размера матрицы
+    function resizeMatrix(matrixId) {
+        const rowsInput = document.getElementById(`${matrixId}Rows`);
+        const colsInput = document.getElementById(`${matrixId}Cols`);
+        const newRows = parseInt(rowsInput.value);
+        const newCols = parseInt(colsInput.value);
+
+        if (isNaN(newRows) || isNaN(newCols) || newRows < 1 || newCols < 1) {
+            showError('Размеры матрицы должны быть не менее 1');
+            return;
+        }
+
+        let oldData = matrixId === 'matrix1' ? matrix1Data : matrix2Data;
+        let newData = Array(newRows).fill().map(() => Array(newCols).fill(0));
+
+        // Копируем существующие значения
+        for (let i = 0; i < Math.min(oldData.length, newRows); i++) {
+            for (let j = 0; j < Math.min(oldData[0]?.length || 0, newCols); j++) {
+                newData[i][j] = oldData[i][j];
+            }
+        }
+
+        if (matrixId === 'matrix1') {
+            matrix1Data = newData;
+            createMatrixGrid('matrix1Grid', matrix1Data, 'matrix1');
+        } else {
+            matrix2Data = newData;
+            createMatrixGrid('matrix2Grid', matrix2Data, 'matrix2');
+        }
+    }
+
+    // Получение матрицы из данных
+    function getMatrix(data) {
+        return {
+            rows: data.length,
+            cols: data[0].length,
+            data: data
+        };
+    }
+
+    // Валидация перед вычислением
+    function validateBeforeCalculate(operation, matrix1, matrix2) {
+        if (operation === 'ADD' || operation === 'SUB') {
+            if (matrix1.rows !== matrix2.rows || matrix1.cols !== matrix2.cols) {
+                throw new Error(`Сложение/вычитание невозможно! Размеры матриц должны совпадать.\nМатрица A: ${matrix1.rows}×${matrix1.cols}\nМатрица B: ${matrix2.rows}×${matrix2.cols}`);
+            }
+        } else if (operation === 'MUL') {
+            if (matrix1.cols !== matrix2.rows) {
+                throw new Error(`Умножение невозможно! Количество столбцов матрицы A (${matrix1.cols}) должно равняться количеству строк матрицы B (${matrix2.rows})`);
+            }
+        } else if (operation === 'TRACE' || operation === 'DET') {
+            if (matrix1.rows !== matrix1.cols) {
+                throw new Error(`Операция "${operation}" требует квадратную матрицу! Матрица A имеет размер ${matrix1.rows}×${matrix1.cols}`);
+            }
+        }
+        return true;
+    }
+
+    // Форматирование результата для отображения
+    function formatResult(result) {
+        if (result === null || result === undefined) return 'null';
+        if (typeof result === 'number') return result.toString();
+        if (typeof result === 'object' && result.data) {
+            let html = '<table class="result-matrix">';
+            for (let i = 0; i < result.data.length; i++) {
+                html += '<tr>';
+                for (let j = 0; j < result.data[i].length; j++) {
+                    html += `<td>${result.data[i][j].toFixed(4)}</td>`;
+                }
+                html += '</tr>';
+            }
+            html += '</table>';
+            return html;
+        }
+        return JSON.stringify(result, null, 2);
+    }
+
+    // Выполнение вычисления
+    async function calculate() {
+        hideError();
+        resultSection.style.display = 'none';
+        calculateBtn.disabled = true;
+        calculateBtn.textContent = 'Вычисление...';
+
+        try {
+            const operation = operationSelect.value;
+            const matrix1 = getMatrix(matrix1Data);
+            const matrix2 = operation === 'TRACE' || operation === 'DET' ? null : getMatrix(matrix2Data);
+
+            // Валидация перед отправкой
+            if (matrix2) {
+                validateBeforeCalculate(operation, matrix1, matrix2);
+            } else {
+                validateBeforeCalculate(operation, matrix1, matrix1);
+            }
+
+            let response;
+            if (operation === 'TRACE' || operation === 'DET') {
+                response = await fetch(`${API_BASE}/unary`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ matrix1, matrixOperation: operation })
+                });
+            } else {
+                response = await fetch(`${API_BASE}/binary`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ matrix1, matrix2, matrixOperation: operation })
+                });
+            }
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.detailMessage || errorData.message || `HTTP ${response.status}`);
+            }
+
+            const result = await response.json();
+            resultContent.innerHTML = formatResult(result);
+            resultSection.style.display = 'block';
+            await loadHistory();
+
+        } catch (error) {
+            showError(error.message);
+        } finally {
+            calculateBtn.disabled = false;
+            calculateBtn.textContent = 'Вычислить';
+        }
+    }
+
+    // Загрузка истории
+    async function loadHistory() {
+        try {
+            const response = await fetch(`${API_BASE}/history`);
+            if (!response.ok) throw new Error('Не удалось загрузить историю');
+            const history = await response.json();
+            renderHistory(history);
+        } catch (error) {
+            console.error('Ошибка загрузки истории:', error);
+        }
+    }
+
+    // Отображение истории
+    function renderHistory(history) {
+        if (!history || history.length === 0) {
+            historyListDiv.innerHTML = '<div style="text-align: center; color: #6c757d; padding: 40px;">История пуста</div>';
+            return;
+        }
+
+        historyListDiv.innerHTML = history.map(item => {
+            const operation = item.operation;
+            const matrix1Str = item.matrix1 ? `${item.matrix1.rows}×${item.matrix1.cols}` : '—';
+            const matrix2Str = item.matrix2 ? `${item.matrix2.rows}×${item.matrix2.cols}` : '—';
+            const resultStr = typeof item.result === 'number' ? item.result :
+                             (item.result?.data ? `[${item.result.rows}×${item.result.cols}] матрица` : JSON.stringify(item.result).substring(0, 50));
+
+            let details = '';
+            if (operation === 'TRACE' || operation === 'DET') {
+                details = `Матрица: ${matrix1Str}`;
+            } else {
+                details = `Матрица A: ${matrix1Str}, Матрица B: ${matrix2Str}`;
+            }
+
+            return `
+                <div class="history-item" data-id="${item.id}">
+                    <div class="history-header-item">
+                        <span class="history-operation">${getOperationName(operation)}</span>
+                        <span class="history-time">${item.errorTime ? new Date(item.errorTime).toLocaleString() : ''}</span>
+                        <button class="repeat-btn" onclick="repeatOperation(${item.id})">Повторить</button>
+                    </div>
+                    <div class="history-details">${details}</div>
+                    <div class="history-result">📊 Результат: ${resultStr}</div>
+                </div>
+            `;
+        }).join('');
+    }
+
+    function getOperationName(op) {
+        const names = { 'ADD': 'Сложение', 'SUB': 'Вычитание', 'MUL': 'Умножение', 'TRACE': 'След', 'DET': 'Определитель' };
+        return names[op] || op;
+    }
+
+    // Повтор операции
+    async function repeatOperation(id) {
+        try {
+            const response = await fetch(`${API_BASE}/history`);
+            if (!response.ok) throw new Error('Не удалось загрузить историю');
+            const history = await response.json();
+            const item = history.find(h => h.id === id);
+            if (!item) throw new Error('Операция не найдена');
+
+            if (item.matrix1) {
+                matrix1Data = item.matrix1.data;
+                document.getElementById('matrix1Rows').value = item.matrix1.rows;
+                document.getElementById('matrix1Cols').value = item.matrix1.cols;
+                createMatrixGrid('matrix1Grid', matrix1Data, 'matrix1');
+            }
+            if (item.matrix2) {
+                matrix2Data = item.matrix2.data;
+                document.getElementById('matrix2Rows').value = item.matrix2.rows;
+                document.getElementById('matrix2Cols').value = item.matrix2.cols;
+                createMatrixGrid('matrix2Grid', matrix2Data, 'matrix2');
+            }
+            operationSelect.value = item.operation;
+            updateMatricesVisibility();
+            await calculate();
+            document.querySelector('.calculator-panel').scrollIntoView({ behavior: 'smooth' });
+        } catch (error) {
+            showError(`Ошибка при повторе: ${error.message}`);
+        }
+    }
+
+    // Очистка истории
+    async function clearHistory() {
+        try {
+            const response = await fetch(`${API_BASE}/history`, { method: 'DELETE' });
+            if (!response.ok) throw new Error('Не удалось очистить историю');
+            await loadHistory();
+        } catch (error) {
+            showError(`Ошибка: ${error.message}`);
+        }
+    }
+
+    // Обновление страницы с очисткой истории
+    async function refreshPage() {
+        try {
+            await fetch(`${API_BASE}/history`, { method: 'DELETE' });
+            setTimeout(() => {
+                window.location.reload();
+            }, 100);
+        } catch (error) {
+            console.error('Ошибка при очистке истории:', error);
+            window.location.reload();
+        }
+    }
+
+    function showError(message) {
+        errorMessageDiv.textContent = message;
+        errorMessageDiv.style.display = 'block';
+        setTimeout(() => {
+            if (errorMessageDiv.style.display === 'block') {
+                errorMessageDiv.style.display = 'none';
+            }
+        }, 5000);
+    }
+
+    function hideError() {
+        errorMessageDiv.style.display = 'none';
+    }
+
+    // Инициализация
+    function init() {
+        createMatrixGrid('matrix1Grid', matrix1Data, 'matrix1');
+        createMatrixGrid('matrix2Grid', matrix2Data, 'matrix2');
+
+        document.getElementById('matrix1Rows').value = 3;
+        document.getElementById('matrix1Cols').value = 3;
+        document.getElementById('matrix2Rows').value = 3;
+        document.getElementById('matrix2Cols').value = 3;
+
+        updateMatricesVisibility();
+        operationSelect.addEventListener('change', updateMatricesVisibility);
+        calculateBtn.addEventListener('click', calculate);
+        clearHistoryBtn.addEventListener('click', clearHistory);
+        refreshIcon.addEventListener('click', refreshPage);
+
+        window.repeatOperation = repeatOperation;
+        window.resizeMatrix = resizeMatrix;
+        window.updateMatrixValue = updateMatrixValue;
+
+        loadHistory();
+    }
+
+    init();
+</script>
+</body>
+</html>
