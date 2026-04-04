@@ -89,6 +89,14 @@ public class MatrixController {
                 log.debug("Вычисление определителя матрицы");
                 yield matrixService.determinant(matrix1);
             }
+            case "TRANSPOSE" -> {
+                log.debug("Транспонирование матрицы");
+                yield matrixService.transpose(matrix1);
+            }
+            case "INVERSE" -> {
+                log.debug("Нахождение обратной матрицы");
+                yield matrixService.inverse(matrix1);
+            }
             default -> {
                 log.warn("Неизвестная операция: {}", matrixOperation);
                 throw new IllegalArgumentException("Unknown operation: " + matrixOperation);

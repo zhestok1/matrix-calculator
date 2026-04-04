@@ -4,6 +4,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import ru.petrukhin_magera.matrix_calculator.model.Matrix;
 import ru.petrukhin_magera.matrix_calculator.model.MatrixDeterminant;
+import ru.petrukhin_magera.matrix_calculator.model.MatrixInverse;
 
 @Slf4j
 @Service
@@ -130,5 +131,38 @@ public class MatrixService {
                     matrix1.getRows(), matrix1.getCols());
             throw new IllegalArgumentException("Size must have format n×n!");
         }
+    }
+
+    public Matrix transpose(Matrix matrix1) {
+        log.debug("Транспонирование матрицы размером {}x{}", matrix1.getRows(), matrix1.getCols());
+
+        double[][] original = matrix1.getData();
+        double[][] transposed = new double[matrix1.getCols()][matrix1.getRows()];
+
+        for (int i = 0; i < matrix1.getRows(); i++) {
+            for (int j = 0; j < matrix1.getCols(); j++) {
+                transposed[j][i] = original[i][j];
+            }
+        }
+
+        log.debug("Транспонирование выполнено успешно, размер результата: {}x{}",
+                matrix1.getCols(), matrix1.getRows());
+        return new Matrix(matrix1.getCols(), matrix1.getRows(), transposed);
+    }
+
+    public Matrix inverse(Matrix matrix1) {
+        log.debug("Проверка размера матрицы для нахождения обратной: {}x{}",
+                matrix1.getRows(), matrix1.getCols());
+
+        if (matrix1.getCols() != matrix1.getRows()) {
+            log.warn("Ошибка: матрица не квадратная ({}x{})", matrix1.getRows(), matrix1.getCols());
+            throw new IllegalArgumentException("Matrix must be square for inverse operation!");
+        }
+
+        double[][] data = matrix1.getData();
+        double[][] inversedData = MatrixInverse.inverse(data);
+
+        log.debug("Обратная матрица вычислена успешно");
+        return new Matrix(matrix1.getRows(), matrix1.getCols(), inversedData);
     }
 }

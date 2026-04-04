@@ -19,7 +19,7 @@ public class MatrixRequestUnary {
     private Matrix matrix1;
 
     @NotEmpty(message = "Operation Type cannot be null")
-    @Pattern(regexp = "TRACE|DET", message = "Operation must be TRACE or DET")
+    @Pattern(regexp = "TRACE|DET|TRANSPOSE|INVERSE", message = "Operation must be TRACE, DET, TRANSPOSE or INVERSE")
     private String matrixOperation;
 
 }
