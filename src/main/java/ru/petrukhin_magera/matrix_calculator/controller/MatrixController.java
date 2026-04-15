@@ -131,7 +131,8 @@ public class MatrixController {
             }
             case "INVERSE" -> {
                 log.debug("Нахождение обратной матрицы");
-                yield matrixService.inverse(matrix1);
+                double[][] inverseData = matrixService.inverse(matrix1).getData();
+                yield new Matrix(inverseData.length, inverseData[0].length, inverseData);
             }
             default -> {
                 log.warn("Неизвестная операция: {}", matrixOperation);

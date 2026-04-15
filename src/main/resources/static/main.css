@@ -1,3 +1,11 @@
+/* ============================================
+   МАТРИЧНЫЙ КАЛЬКУЛЯТОР - ОСНОВНЫЕ СТИЛИ
+   Версия: 2.0
+   ============================================ */
+
+/* --------------------------------------------
+   1. БАЗОВЫЕ СТИЛИ И СБРОС
+   -------------------------------------------- */
 * {
     padding: 0;
     margin: 0;
@@ -13,6 +21,7 @@ body {
     position: relative;
 }
 
+/* Декоративный фон с сеткой */
 body::before {
     content: '';
     position: fixed;
@@ -26,7 +35,9 @@ body::before {
     pointer-events: none;
 }
 
-/* Header */
+/* --------------------------------------------
+   2. ШАПКА (HEADER)
+   -------------------------------------------- */
 #header {
     background: rgba(6, 58, 107, 0.95);
     backdrop-filter: blur(10px);
@@ -92,7 +103,9 @@ body::before {
     visibility: hidden;
 }
 
-/* Main Container */
+/* --------------------------------------------
+   3. ОСНОВНОЙ КОНТЕЙНЕР С МАТРИЦАМИ
+   -------------------------------------------- */
 #main-container {
     flex: 1;
     display: flex;
@@ -108,13 +121,16 @@ body::before {
     flex-direction: row;
     flex-wrap: wrap;
     justify-content: center;
+    align-items: center;     /* ВЫРАВНИВАНИЕ ПО ЦЕНТРУ */
     gap: 25px;
     padding: 35px;
     border-radius: 24px;
     box-shadow: 0 20px 60px rgba(0,0,0,0.3);
 }
 
-/* Matrix Wrapper */
+/* --------------------------------------------
+   4. КОНТЕЙНЕРЫ МАТРИЦ
+   -------------------------------------------- */
 .matrix-wrapper {
     display: flex;
     flex-direction: column;
@@ -179,7 +195,9 @@ body::before {
     color: #666;
 }
 
-/* Matrix Container */
+/* --------------------------------------------
+   5. СЕТКА МАТРИЦЫ (INPUT ПОЛЯ)
+   -------------------------------------------- */
 .matrix-container {
     display: grid;
     gap: 8px;
@@ -239,7 +257,9 @@ body::before {
     }
 }
 
-/* Center Controls */
+/* --------------------------------------------
+   6. ЦЕНТРАЛЬНЫЕ КНОПКИ (ОБМЕН/ОЧИСТКА)
+   -------------------------------------------- */
 .center-controls {
     display: flex;
     flex-direction: column;
@@ -274,16 +294,20 @@ body::before {
     color: white;
 }
 
-/* Action Window */
+/* --------------------------------------------
+   7. ПАНЕЛЬ ВЫБОРА ОПЕРАЦИЙ (ЦЕНТРИРОВАНА)
+   -------------------------------------------- */
 .action-selection-window {
-    width: 300px;
+    width: 320px;
     background: linear-gradient(135deg, #ecf0f1 0%, #dfe6e9 100%);
     border-radius: 20px;
-    padding: 25px;
+    padding: 25px 20px;
     display: flex;
     flex-direction: column;
     gap: 20px;
-    align-items: center;
+    align-items: center;     /* ЦЕНТРИРОВАНИЕ ПО ГОРИЗОНТАЛИ */
+    justify-content: center; /* ЦЕНТРИРОВАНИЕ ПО ВЕРТИКАЛИ */
+    align-self: center;      /* ВЫРАВНИВАНИЕ САМОГО БЛОКА */
 }
 
 .operation-icon {
@@ -291,6 +315,7 @@ body::before {
     color: #063a6b;
 }
 
+/* ВЫПАДАЮЩИЙ СПИСОК - ЦЕНТРИРОВАНИЕ ТЕКСТА */
 .main-op {
     width: 100%;
     padding: 12px;
@@ -299,8 +324,11 @@ body::before {
     border-radius: 10px;
     background: white;
     cursor: pointer;
+    text-align: center;         /* ЦЕНТР ТЕКСТА */
+    text-align-last: center;    /* ЦЕНТР ВЫБРАННОГО ЗНАЧЕНИЯ */
 }
 
+/* КНОПКА ВЫЧИСЛИТЬ */
 .calculate-btn {
     width: 100%;
     padding: 14px;
@@ -328,21 +356,25 @@ body::before {
     cursor: not-allowed;
 }
 
-/* Checkboxes */
+/* ЧЕКБОКСЫ - ЦЕНТРИРОВАНИЕ */
 .checkbox-list {
     display: flex;
     flex-direction: column;
     gap: 12px;
     width: 100%;
+    align-items: center;   /* ЦЕНТРИРОВАНИЕ ЧЕКБОКСОВ */
 }
 
 .checkbox-container {
     display: flex;
     align-items: center;
+    justify-content: center;
     position: relative;
     padding-left: 30px;
     cursor: pointer;
     font-size: 14px;
+    width: fit-content;
+    margin: 0 auto;
 }
 
 .custom-checkbox {
@@ -390,7 +422,102 @@ body::before {
     margin-right: 5px;
 }
 
-/* Result Card */
+/* --------------------------------------------
+   8. ПЛАВАЮЩАЯ ПОДСКАЗКА (СПРАВА, НА 5 СЕКУНД)
+   -------------------------------------------- */
+.floating-tooltip {
+    position: fixed;
+    right: 20px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: linear-gradient(135deg, #063a6b 0%, #0a4d8a 100%);
+    color: white;
+    padding: 20px;
+    border-radius: 16px;
+    max-width: 320px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+    z-index: 9999;
+    animation: slideInRight 0.3s ease, fadeOut 0.3s ease 4.7s forwards;
+    border-left: 4px solid #ffd700;
+}
+
+@keyframes slideInRight {
+    from {
+        opacity: 0;
+        transform: translateX(100px) translateY(-50%);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0) translateY(-50%);
+    }
+}
+
+@keyframes fadeOut {
+    to {
+        opacity: 0;
+        visibility: hidden;
+    }
+}
+
+.floating-tooltip h4 {
+    margin: 0 0 10px 0;
+    font-size: 18px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    border-bottom: 1px solid rgba(255,255,255,0.3);
+    padding-bottom: 8px;
+}
+
+.floating-tooltip p {
+    margin: 0;
+    font-size: 14px;
+    line-height: 1.5;
+}
+
+.floating-tooltip .close-tip {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: none;
+    border: none;
+    color: white;
+    cursor: pointer;
+    font-size: 16px;
+    opacity: 0.7;
+}
+
+.floating-tooltip .close-tip:hover {
+    opacity: 1;
+}
+
+/* Адаптация для мобильных устройств */
+@media (max-width: 768px) {
+    .floating-tooltip {
+        right: 10px;
+        left: 10px;
+        max-width: none;
+        top: auto;
+        bottom: 20px;
+        transform: translateY(0);
+        animation: slideInBottom 0.3s ease, fadeOut 0.3s ease 4.7s forwards;
+    }
+
+    @keyframes slideInBottom {
+        from {
+            opacity: 0;
+            transform: translateY(100px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+}
+
+/* --------------------------------------------
+   9. КАРТОЧКА РЕЗУЛЬТАТА
+   -------------------------------------------- */
 .result-card {
     background: white;
     border-radius: 20px;
@@ -472,7 +599,9 @@ body::before {
     padding: 30px;
 }
 
-/* History Card */
+/* --------------------------------------------
+   10. КАРТОЧКА ИСТОРИИ
+   -------------------------------------------- */
 .history-card {
     background: white;
     border-radius: 20px;
@@ -614,7 +743,9 @@ body::before {
     font-size: 13px;
 }
 
-/* Footer */
+/* --------------------------------------------
+   11. ПОДВАЛ
+   -------------------------------------------- */
 #footer {
     text-align: center;
     padding: 20px;
@@ -623,28 +754,126 @@ body::before {
     margin-top: auto;
 }
 
+#footer a {
+    color: white;
+    text-decoration: none;
+    cursor: pointer;
+    transition: opacity 0.3s;
+}
+
+#footer a:hover {
+    opacity: 0.8;
+    text-decoration: underline;
+}
+
 #footer i {
     margin-right: 5px;
 }
 
-/* Responsive */
-@media (max-width: 1100px) {
-    #matrix-solution-block {
-        flex-direction: column;
-        align-items: center;
-    }
-
-    .center-controls {
-        flex-direction: row;
-    }
-
-    .action-selection-window {
-        width: 100%;
-        max-width: 350px;
-    }
+/* --------------------------------------------
+   12. СТРАНИЦА "О НАС"
+   -------------------------------------------- */
+.about-page {
+    max-width: 1200px;
+    margin: 40px auto;
+    padding: 20px;
+    background: white;
+    border-radius: 24px;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+    animation: slideDown 0.3s ease;
 }
 
-/* Toast */
+.about-header {
+    text-align: center;
+    padding-bottom: 20px;
+    border-bottom: 2px solid #e0e0e0;
+    margin-bottom: 30px;
+}
+
+.about-header h1 {
+    color: #063a6b;
+    font-size: 32px;
+}
+
+.about-content {
+    display: flex;
+    justify-content: center;
+    gap: 40px;
+    flex-wrap: wrap;
+}
+
+.team-member {
+    text-align: center;
+    width: 280px;
+}
+
+.member-photo {
+    width: 200px;
+    height: 200px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 4px solid #063a6b;
+    margin-bottom: 15px;
+    background: #f0f0f0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+}
+
+.member-photo img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.member-photo i {
+    font-size: 80px;
+    color: #ccc;
+}
+
+.member-name {
+    font-size: 22px;
+    font-weight: bold;
+    color: #333;
+}
+
+.member-role {
+    color: #666;
+    margin-bottom: 10px;
+}
+
+.member-bio {
+    font-size: 14px;
+    color: #555;
+    line-height: 1.4;
+}
+
+.back-to-main {
+    display: block;
+    text-align: center;
+    margin-top: 30px;
+    padding: 12px;
+    background: #063a6b;
+    color: white;
+    border-radius: 10px;
+    text-decoration: none;
+    width: 200px;
+    margin-left: auto;
+    margin-right: auto;
+    transition: all 0.3s;
+    border: none;
+    cursor: pointer;
+}
+
+.back-to-main:hover {
+    background: #0a4d8a;
+    transform: translateY(-2px);
+}
+
+/* --------------------------------------------
+   13. УВЕДОМЛЕНИЯ (TOAST)
+   -------------------------------------------- */
 .toast {
     position: fixed;
     bottom: 20px;
@@ -672,7 +901,9 @@ body::before {
 .toast-error { background: #f44336; }
 .toast-info { background: #2196f3; }
 
-/* Scrollbar */
+/* --------------------------------------------
+   14. СКРОЛЛБАР
+   -------------------------------------------- */
 .history-list::-webkit-scrollbar {
     width: 8px;
 }
@@ -687,7 +918,9 @@ body::before {
     border-radius: 10px;
 }
 
-/* Стили для матриц в истории */
+/* --------------------------------------------
+   15. СТИЛИ ДЛЯ МАТРИЦ В ИСТОРИИ
+   -------------------------------------------- */
 .history-matrix-table {
     border-collapse: collapse;
     background: #1e2a36;
@@ -746,4 +979,102 @@ body::before {
 .history-matrix-wrapper strong {
     color: #aaa;
     font-size: 12px;
+}
+
+/* --------------------------------------------
+   16. АДАПТИВНОСТЬ
+   -------------------------------------------- */
+@media (max-width: 1100px) {
+    #matrix-solution-block {
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .center-controls {
+        flex-direction: row;
+    }
+
+    .action-selection-window {
+        width: 100%;
+        max-width: 350px;
+    }
+}
+/* --------------------------------------------
+   17. ДОПОЛНИТЕЛЬНЫЕ СТИЛИ ДЛЯ СТРАНИЦЫ "О НАС" (ВЫРОВНИВАНИЕ)
+   -------------------------------------------- */
+.about-content {
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    gap: 60px;
+    flex-wrap: wrap;
+}
+
+.team-member {
+    text-align: center;
+    width: 280px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.member-photo {
+    width: 200px;
+    height: 200px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 4px solid #063a6b;
+    margin-bottom: 15px;
+    background: #f0f0f0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    flex-shrink: 0;
+}
+
+.member-photo img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.member-photo i {
+    font-size: 80px;
+    color: #ccc;
+}
+
+/* ВЫРАВНИВАНИЕ ТЕКСТА ПОД ФОТО */
+.member-name {
+    font-size: 18px;
+    font-weight: bold;
+    color: #333;
+    margin-top: 5px;
+    margin-bottom: 3px;
+    text-align: center;
+    width: 100%;
+}
+
+.member-role {
+    color: #666;
+    margin-bottom: 5px;
+    font-size: 14px;
+    text-align: center;
+    width: 100%;
+}
+
+.member-bio {
+    font-size: 14px;
+    color: #555;
+    line-height: 1.4;
+    text-align: center;
+    width: 100%;
+}
+
+/* Чтобы блоки были одинаковой высоты */
+.team-member {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
 }

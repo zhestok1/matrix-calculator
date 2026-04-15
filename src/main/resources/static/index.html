@@ -10,6 +10,9 @@
 </head>
 <body>
 
+<!-- ============================================
+     ШАПКА САЙТА
+     ============================================ -->
 <header id="header">
     <div class="header-content">
         <div class="logo-wrapper" onclick="resetApp()">
@@ -22,10 +25,13 @@
     </div>
 </header>
 
+<!-- ============================================
+     ОСНОВНОЙ БЛОК С МАТРИЦАМИ
+     ============================================ -->
 <main id="main-container">
     <div id="matrix-solution-block">
 
-        <!-- Матрица A -->
+        <!-- МАТРИЦА A -->
         <div class="matrix-wrapper" id="wrapper1">
             <div class="matrix-header">
                 <h3 class="matrix-title matrix-a-title">
@@ -40,7 +46,7 @@
             <div id="matrix1" class="matrix-container matrix-one"></div>
         </div>
 
-        <!-- Центральные контролы -->
+        <!-- КНОПКИ ОБМЕНА И ОЧИСТКИ (ПО ЦЕНТРУ) -->
         <div class="center-controls">
             <button id="matrix-exchange" onclick="swapMatrices()" title="Поменять матрицы местами">
                 <i class="fas fa-exchange-alt"></i>
@@ -50,7 +56,7 @@
             </button>
         </div>
 
-        <!-- Матрица B -->
+        <!-- МАТРИЦА B -->
         <div class="matrix-wrapper" id="wrapper2">
             <div class="matrix-header">
                 <h3 class="matrix-title matrix-b-title">
@@ -65,19 +71,25 @@
             <div id="matrix2" class="matrix-container matrix-two"></div>
         </div>
 
-        <!-- Панель действий -->
+        <!-- ============================================
+             ПАНЕЛЬ ВЫБОРА ОПЕРАЦИЙ (ВЫРОВНЕНА ПО ЦЕНТРУ)
+             ============================================ -->
         <div class="action-selection-window">
             <div class="operation-icon">
                 <i class="fas fa-function"></i>
             </div>
+
+            <!-- ВЫПАДАЮЩИЙ СПИСОК ОПЕРАЦИЙ -->
             <select id="choosing-operation" class="styled-select main-op" onchange="onOperationChange()">
                 <option value="" selected disabled>-- Выберите операцию --</option>
             </select>
 
+            <!-- КНОПКА ВЫЧИСЛИТЬ -->
             <button class="calculate-btn" onclick="generateAPI()">
                 <i class="fas fa-play"></i> Вычислить
             </button>
 
+            <!-- ЧЕКБОКСЫ АКТИВАЦИИ МАТРИЦ (ВЫРОВНЕНЫ ПО ЦЕНТРУ) -->
             <div class="checkbox-list">
                 <label class="checkbox-container">
                     <input class="custom-checkbox" id="checkA" checked type="checkbox" onchange="updateUI()">
@@ -94,7 +106,9 @@
     </div>
 </main>
 
-<!-- Блок результата -->
+<!-- ============================================
+     БЛОК РЕЗУЛЬТАТА ВЫЧИСЛЕНИЙ
+     ============================================ -->
 <section id="result-container" style="max-width: 1200px; margin: 20px auto; padding: 0 20px;">
     <div class="result-card" id="result-card" style="display: none;">
         <div class="result-header">
@@ -105,7 +119,9 @@
     </div>
 </section>
 
-<!-- История -->
+<!-- ============================================
+     БЛОК ИСТОРИИ ВЫЧИСЛЕНИЙ
+     ============================================ -->
 <section id="history-container" style="max-width: 1200px; margin: 20px auto; padding: 0 20px;">
     <div class="history-card">
         <div class="history-header">
@@ -125,9 +141,18 @@
     </div>
 </section>
 
+<!-- ============================================
+     ПОДВАЛ С ССЫЛКОЙ "О НАС"
+     ============================================ -->
 <footer id="footer">
-    <p><i class="fas fa-info-circle"></i> О нас | 2026 Матричный калькулятор</p>
+    <p><i class="fas fa-info-circle"></i> <a href="#" onclick="showAboutPage(); return false;">О нас</a> | 2026 Матричный калькулятор</p>
 </footer>
+
+<!-- ============================================
+     КОНТЕЙНЕР ДЛЯ СТРАНИЦЫ "О НАС" (ДИНАМИЧЕСКИ)
+     СЮДА БУДЕТ ВСТАВЛЕНА ИНФОРМАЦИЯ О РАЗРАБАХ
+     ============================================ -->
+<div id="about-page-container"></div>
 
 <script src="main.js"></script>
 </body>

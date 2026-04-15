@@ -1,16 +1,195 @@
 /**
- * КОНФИГУРАЦИЯ ОПЕРАЦИЙ
+ * =================================================================
+ * МАТРИЧНЫЙ КАЛЬКУЛЯТОР - ОСНОВНАЯ ЛОГИКА
+ * Версия: 2.1
+ *
+ * Описание: Полнофункциональный калькулятор для работы с матрицами
+ * Поддерживает: сложение, вычитание, умножение, определитель,
+ * след, транспонирование, обратную матрицу
+ *
+ * ИЗМЕНЕНИЯ В ВЕРСИИ 2.1:
+ * - Исправлена работа с матрицей B для унарных операций
+ * - Теперь можно использовать матрицу B для определителя, следа и т.д.
+ * - Убрано принудительное отключение матрицы B
+ *
+ * КАК РАБОТАЕТ ПОДСКАЗКА:
+ * - При выборе операции из выпадающего списка
+ * - Справа посередине экрана появляется плашка
+ * - Висит 5 секунд, затем исчезает
+ * - Можно закрыть крестиком досрочно
+ * =================================================================
+ */
+
+// ======================== КОНФИГУРАЦИЯ ========================
+
+/**
+ * СПИСОК ВСЕХ ДОСТУПНЫХ ОПЕРАЦИЙ
  */
 const allOperations = [
-    { name: "Сумма матриц", type: "double", apiName: "ADD", icon: "fa-plus" },
-    { name: "Вычитание матриц", type: "double", apiName: "SUB", icon: "fa-minus" },
-    { name: "Умножение матриц", type: "double", apiName: "MUL", icon: "fa-times" },
-    { name: "Определитель матрицы", type: "single", apiName: "DET", icon: "fa-calculator" },
-    { name: "След матрицы", type: "single", apiName: "TRACE", icon: "fa-chart-line" }
+    { name: "Сумма матриц", type: "double", apiName: "ADD", icon: "fa-plus", definition: "Сложение двух матриц одинаковой размерности. Каждый элемент результирующей матрицы равен сумме соответствующих элементов исходных матриц." },
+    { name: "Вычитание матриц", type: "double", apiName: "SUB", icon: "fa-minus", definition: "Вычитание двух матриц одинаковой размерности. Каждый элемент результирующей матрицы равен разности соответствующих элементов исходных матриц." },
+    { name: "Умножение матриц", type: "double", apiName: "MUL", icon: "fa-times", definition: "Умножение двух матриц. Количество столбцов первой матрицы должно равняться количеству строк второй. Результат — матрица, где элемент (i,j) равен сумме произведений элементов i-й строки первой матрицы на j-й столбец второй." },
+    { name: "Определитель матрицы", type: "single", apiName: "DET", icon: "fa-calculator", definition: "Определитель (детерминант) квадратной матрицы — число, которое характеризует матрицу. Вычисляется только для квадратных матриц." },
+    { name: "След матрицы", type: "single", apiName: "TRACE", icon: "fa-chart-line", definition: "След матрицы — сумма элементов главной диагонали квадратной матрицы." },
+    { name: "Транспонирование матрицы", type: "single", apiName: "TRANSPOSE", icon: "fa-arrows-rotate", definition: "Транспонирование — операция, при которой строки матрицы становятся столбцами, а столбцы — строками. Размер матрицы меняется с m×n на n×m." },
+    { name: "Обратная матрица", type: "single", apiName: "INVERSE", icon: "fa-divide", definition: "Обратная матрица — такая матрица, умножение которой на исходную дает единичную матрицу. Существует только для квадратных невырожденных матриц (определитель ≠ 0)." }
 ];
 
-let isLoading = false;
-let currentHistory = [];
+let isLoading = false;          // Флаг для предотвращения множественных запросов
+let currentHistory = [];       // Хранилище истории вычислений
+let tooltipTimeout = null;     // Таймер для автоматического закрытия подсказки
+
+// ======================== ПЛАВАЮЩАЯ ПОДСКАЗКА СПРАВА ========================
+
+/**
+ * ПОКАЗ ПЛАВАЮЩЕЙ ПОДСКАЗКИ СПРАВА
+ * Вызывается при выборе операции из выпадающего списка
+ * Подсказка появляется справа посередине экрана и висит 5 секунд
+ *
+ * @param {string} operationApiName - API имя операции (ADD, SUB, DET и т.д.)
+ */
+function showFloatingTooltip(operationApiName) {
+    // Находим операцию по ее apiName
+    const operation = allOperations.find(op => op.apiName === operationApiName);
+
+    // Если операция не найдена или нет определения - выходим
+    if (!operation || !operation.definition) return;
+
+    // Удаляем старую подсказку, если она есть (чтобы не было нагромождения)
+    const existingTooltip = document.getElementById('floating-tooltip');
+    if (existingTooltip) {
+        existingTooltip.remove();
+    }
+
+    // Отменяем предыдущий таймер, если он был
+    if (tooltipTimeout) {
+        clearTimeout(tooltipTimeout);
+    }
+
+    // Создаем новую подсказку
+    const tooltip = document.createElement('div');
+    tooltip.id = 'floating-tooltip';
+    tooltip.className = 'floating-tooltip';
+    tooltip.innerHTML = `
+        <button class="close-tip" onclick="closeFloatingTooltip()">&times;</button>
+        <h4>
+            <i class="fas ${operation.icon}"></i>
+            ${operation.name}
+        </h4>
+        <p>${operation.definition}</p>
+    `;
+
+    // Добавляем на страницу
+    document.body.appendChild(tooltip);
+
+    // Устанавливаем таймер на автоматическое закрытие через 5 секунд
+    tooltipTimeout = setTimeout(() => {
+        closeFloatingTooltip();
+    }, 5000);
+}
+
+/**
+ * ЗАКРЫТЬ ПЛАВАЮЩУЮ ПОДСКАЗКУ
+ */
+function closeFloatingTooltip() {
+    const tooltip = document.getElementById('floating-tooltip');
+    if (tooltip) {
+        tooltip.remove();
+    }
+    if (tooltipTimeout) {
+        clearTimeout(tooltipTimeout);
+        tooltipTimeout = null;
+    }
+}
+
+// ======================== СТРАНИЦА "О НАС" ========================
+
+/**
+ * ПОКАЗ СТРАНИЦЫ "О НАС"
+ *
+ * - member-name: Имя и фамилия
+ * - member-role: Должность/роль
+ * - member-bio: Краткая информация о себе
+ */
+function showAboutPage() {
+    const mainContainer = document.getElementById('main-container');
+    const resultContainer = document.getElementById('result-container');
+    const historyContainer = document.getElementById('history-container');
+    const aboutContainer = document.getElementById('about-page-container');
+    const footer = document.getElementById('footer');
+
+    // Скрываем основные блоки и футер
+    mainContainer.style.display = 'none';
+    resultContainer.style.display = 'none';
+    historyContainer.style.display = 'none';
+    if (footer) footer.style.display = 'none';
+
+    // Заполняем контейнер "О нас"
+    aboutContainer.innerHTML = `
+        <div class="about-page">
+            <div class="about-header">
+                <h1><i class="fas fa-users"></i> О нас</h1>
+                <p>Команда разработчиков матричного калькулятора</p>
+            </div>
+            <div class="about-content">
+
+                <!-- ===================================================== -->
+                <!-- ПЕРВЫЙ УЧАСТНИК - Магера Никита (image_1.jpg) -->
+                <!-- ===================================================== -->
+                <div class="team-member">
+                    <div class="member-photo">
+                        <img src="image_1.jpg"
+                             alt="Фото Магера Никита"
+                             onerror="this.onerror=null; this.parentElement.innerHTML='<i class=\'fas fa-user-circle\'></i>';">
+                    </div>
+                    <div class="member-name">Магера Никита Алексеевич </div>
+                    <div class="member-name">тг: @pow_diath</div>
+                    <div class="member-role">Designer, Frontend Developer</div>
+                </div>
+
+                <!-- ===================================================== -->
+                <!-- ВТОРОЙ УЧАСТНИК - Петрухин Роман (image_2.png) -->
+                <!-- ===================================================== -->
+                <div class="team-member">
+                    <div class="member-photo">
+                        <img src="image_2.jpg"
+                             alt="Фото Петрухин Роман"
+                             onerror="this.onerror=null; this.parentElement.innerHTML='<i class=\'fas fa-user-circle\'></i>';">
+                    </div>
+                    <div class="member-name">Петрухин Роман Андреевич</div>
+                    <div class="member-name">тг: @aniwave13</div>
+                    <div class="member-role">Team Lead, Backend Developer</div>
+                </div>
+            </div>
+            <button class="back-to-main" onclick="hideAboutPage()">
+                <i class="fas fa-arrow-left"></i> Вернуться к калькулятору
+            </button>
+        </div>
+    `;
+    aboutContainer.style.display = 'block';
+}
+
+/**
+ * СКРЫТЬ СТРАНИЦУ "О НАС" И ВЕРНУТЬСЯ К КАЛЬКУЛЯТОРУ
+ */
+function hideAboutPage() {
+    const mainContainer = document.getElementById('main-container');
+    const resultContainer = document.getElementById('result-container');
+    const historyContainer = document.getElementById('history-container');
+    const aboutContainer = document.getElementById('about-page-container');
+    const footer = document.getElementById('footer');
+
+    // Показываем обратно основные блоки и футер
+    mainContainer.style.display = 'flex';
+    resultContainer.style.display = 'block';
+    historyContainer.style.display = 'block';
+    aboutContainer.style.display = 'none';
+    if (footer) footer.style.display = 'block';
+
+    aboutContainer.innerHTML = '';
+}
+
+// ======================== ОСНОВНЫЕ ФУНКЦИИ КАЛЬКУЛЯТОРА ========================
 
 /**
  * СБРОС ПРИЛОЖЕНИЯ (обновление страницы + очистка истории на сервере)
@@ -27,7 +206,8 @@ async function resetApp() {
 }
 
 /**
- * ОТРИСОВКА МАТРИЦЫ
+ * ОТРИСОВКА МАТРИЦЫ (создание input полей)
+ * @param {number} num - Номер матрицы (1 или 2)
  */
 function renderMatrix(num) {
     const rows = parseInt(document.getElementById(`rows${num}`).value);
@@ -51,7 +231,9 @@ function renderMatrix(num) {
 }
 
 /**
- * СБОР ДАННЫХ МАТРИЦЫ
+ * СБОР ДАННЫХ ИЗ МАТРИЦЫ
+ * @param {number} num - Номер матрицы (1 или 2)
+ * @returns {Object} Объект с rows, cols и data (двумерный массив)
  */
 function getMatrixData(num) {
     const rows = parseInt(document.getElementById(`rows${num}`).value);
@@ -71,7 +253,9 @@ function getMatrixData(num) {
 }
 
 /**
- * ЗАПОЛНЕНИЕ МАТРИЦЫ ДАННЫМИ
+ * ЗАПОЛНЕНИЕ МАТРИЦЫ ДАННЫМИ (для восстановления из истории)
+ * @param {number} num - Номер матрицы (1 или 2)
+ * @param {Object} matrixData - Данные матрицы в формате {rows, cols, data}
  */
 function fillMatrixData(num, matrixData) {
     if (!matrixData || !matrixData.data) return;
@@ -91,7 +275,7 @@ function fillMatrixData(num, matrixData) {
 }
 
 /**
- * ОЧИСТКА МАТРИЦ
+ * ОЧИСТКА МАТРИЦ (заполняет все поля нулями)
  */
 function clearMatrices() {
     [1, 2].forEach(num => {
@@ -102,32 +286,56 @@ function clearMatrices() {
 }
 
 /**
- * ОБРАБОТЧИК ИЗМЕНЕНИЯ ОПЕРАЦИИ
+ * ОБРАБОТЧИК ИЗМЕНЕНИЯ ВЫБРАННОЙ ОПЕРАЦИИ
+ * Показывает плавающую подсказку справа и обновляет доступные операции
+ *
+ * ИЗМЕНЕНИЯ В ВЕРСИИ 2.1:
+ * - Убрано принудительное отключение матрицы B для унарных операций
+ * - Теперь пользователь может сам выбирать, с какой матрицей работать
  */
 function onOperationChange() {
     const operation = document.getElementById('choosing-operation').value;
     const checkA = document.getElementById('checkA').checked;
     const checkB = document.getElementById('checkB').checked;
-    const isUnary = ['DET', 'TRACE'].includes(operation);
+
+    // ========== ПОКАЗЫВАЕМ ПЛАВАЮЩУЮ ПОДСКАЗКУ СПРАВА ==========
+    if (operation) {
+        showFloatingTooltip(operation);
+    }
+
+    // Определяем типы операций
+    const isUnary = ['DET', 'TRACE', 'TRANSPOSE', 'INVERSE'].includes(operation);
     const isBinary = ['ADD', 'SUB', 'MUL'].includes(operation);
     const activeMatricesCount = (checkA ? 1 : 0) + (checkB ? 1 : 0);
 
-    if (isUnary && activeMatricesCount === 2) {
-        document.getElementById('checkB').checked = false;
-        updateUI();
-        showToast('Для унарной операции активна только матрица A', 'info');
-    }
+    // ИЗМЕНЕНО: Для унарных операций больше НЕ отключаем принудительно матрицу B
+    // Пользователь может сам выбрать, с какой матрицей работать
 
-    if (isBinary && activeMatricesCount === 1) {
+    // Для бинарных операций проверяем, что активны обе матрицы
+    if (isBinary && activeMatricesCount !== 2) {
         document.getElementById('checkA').checked = true;
         document.getElementById('checkB').checked = true;
         updateUI();
         showToast('Для бинарной операции активны обе матрицы', 'info');
     }
+
+    // Если активна только одна матрица для унарной операции - ничего не делаем
+    // Пользователь сам выбрал, с какой матрицей работать
+    if (isUnary && activeMatricesCount === 1) {
+        const activeMatrix = checkA ? 'A' : 'B';
+        console.log(`Унарная операция будет выполнена с матрицей ${activeMatrix}`);
+    }
+
+    // Если ни одна матрица не активна для унарной операции - активируем A по умолчанию
+    if (isUnary && activeMatricesCount === 0) {
+        document.getElementById('checkA').checked = true;
+        updateUI();
+        showToast('Активирована матрица A для выполнения операции', 'info');
+    }
 }
 
 /**
- * УПРАВЛЕНИЕ ИНТЕРФЕЙСОМ
+ * УПРАВЛЕНИЕ ИНТЕРФЕЙСОМ (показ/скрытие матриц, обновление списка операций)
  */
 function updateUI() {
     const checkA = document.getElementById('checkA').checked;
@@ -138,18 +346,20 @@ function updateUI() {
     const exchangeBtn = document.getElementById('matrix-exchange');
     const clearBtn = document.getElementById('clear-matrices');
 
+    // Показываем/скрываем матрицы в зависимости от чекбоксов
     if (wrapper1) wrapper1.classList.toggle('hidden', !checkA);
     if (wrapper2) wrapper2.classList.toggle('hidden', !checkB);
 
+    // Показываем/скрываем кнопки обмена и очистки
     if (exchangeBtn) exchangeBtn.style.display = (checkA && checkB) ? 'flex' : 'none';
     if (clearBtn) clearBtn.style.display = (checkA || checkB) ? 'flex' : 'none';
 
     const currentSelected = select.value;
-
     select.innerHTML = '<option value="" selected disabled>-- Выберите операцию --</option>';
 
     const activeMatricesCount = (checkA ? 1 : 0) + (checkB ? 1 : 0);
 
+    // Заполняем список доступных операций в зависимости от количества активных матриц
     allOperations.forEach(op => {
         let shouldShow = false;
 
@@ -167,13 +377,14 @@ function updateUI() {
         }
     });
 
+    // Восстанавливаем выбранное значение, если оно еще доступно
     if (currentSelected && [...select.options].some(opt => opt.value === currentSelected)) {
         select.value = currentSelected;
     }
 }
 
 /**
- * ОБМЕН МАТРИЦ
+ * ОБМЕН МАТРИЦ МЕСТАМИ
  */
 function swapMatrices() {
     const r1 = document.getElementById('rows1');
@@ -202,7 +413,9 @@ function swapMatrices() {
 }
 
 /**
- * ФОРМАТИРОВАНИЕ МАТРИЦЫ В HTML ТАБЛИЦУ
+ * ФОРМАТИРОВАНИЕ МАТРИЦЫ В HTML ТАБЛИЦУ (для отображения в истории)
+ * @param {Object} matrixData - Данные матрицы
+ * @returns {string} HTML строка с таблицей
  */
 function formatMatrixAsTable(matrixData) {
     if (!matrixData || !matrixData.data || matrixData.data.length === 0) {
@@ -224,7 +437,9 @@ function formatMatrixAsTable(matrixData) {
 }
 
 /**
- * ПОКАЗ РЕЗУЛЬТАТА
+ * ПОКАЗ РЕЗУЛЬТАТА ВЫЧИСЛЕНИЙ
+ * @param {Object|number} result - Результат (матрица или число)
+ * @param {string} operation - Название операции
  */
 function showResult(result, operation) {
     const resultCard = document.getElementById('result-card');
@@ -234,6 +449,7 @@ function showResult(result, operation) {
 
     let formattedHtml = '';
 
+    // Если результат - матрица (объект с полями data, rows, cols)
     if (typeof result === 'object' && result.data) {
         formattedHtml = '<div style="overflow-x: auto;">';
         formattedHtml += '<table class="result-matrix-table">';
@@ -247,7 +463,24 @@ function showResult(result, operation) {
         }
         formattedHtml += '</table></div>';
         formattedHtml += `<p style="margin-top: 15px; color: #666;">Размер: ${result.rows}×${result.cols}</p>`;
-    } else {
+    }
+    // Если результат - двумерный массив (для обратной совместимости)
+    else if (Array.isArray(result) && result.length > 0 && Array.isArray(result[0])) {
+        formattedHtml = '<div style="overflow-x: auto;">';
+        formattedHtml += '<table class="result-matrix-table">';
+        for (let i = 0; i < result.length; i++) {
+            formattedHtml += '<tr>';
+            for (let j = 0; j < result[i].length; j++) {
+                const val = typeof result[i][j] === 'number' ? result[i][j].toFixed(4) : result[i][j];
+                formattedHtml += `<td>${val}</td>`;
+            }
+            formattedHtml += '</tr>';
+        }
+        formattedHtml += '</table></div>';
+        formattedHtml += `<p style="margin-top: 15px; color: #666;">Размер: ${result.length}×${result[0].length}</p>`;
+    }
+    else {
+        // Результат - число (определитель, след)
         formattedHtml = `<div class="result-value">${typeof result === 'number' ? result.toFixed(6) : result}</div>`;
     }
 
@@ -257,14 +490,16 @@ function showResult(result, operation) {
 }
 
 /**
- * ЗАКРЫТЬ РЕЗУЛЬТАТ
+ * ЗАКРЫТЬ КАРТОЧКУ РЕЗУЛЬТАТА
  */
 function closeResult() {
     document.getElementById('result-card').style.display = 'none';
 }
 
 /**
- * ПОКАЗ УВЕДОМЛЕНИЯ
+ * ПОКАЗ УВЕДОМЛЕНИЯ (TOAST)
+ * @param {string} message - Текст уведомления
+ * @param {string} type - Тип: 'success', 'error', 'info'
  */
 function showToast(message, type = 'info') {
     const toast = document.createElement('div');
@@ -278,6 +513,7 @@ function showToast(message, type = 'info') {
     }, 3000);
 }
 
+// Добавляем стиль для анимации исчезновения уведомлений
 const toastStyle = document.createElement('style');
 toastStyle.textContent = `
     @keyframes slideOut {
@@ -288,7 +524,7 @@ toastStyle.textContent = `
 document.head.appendChild(toastStyle);
 
 /**
- * ЗАГРУЗКА ИСТОРИИ (с отображением матриц)
+ * ЗАГРУЗКА ИСТОРИИ С СЕРВЕРА
  */
 async function refreshHistory() {
     try {
@@ -311,9 +547,7 @@ async function refreshHistory() {
         historyList.innerHTML = currentHistory.map((item, index) => {
             let resultDisplay = '';
 
-            // Проверяем, является ли результат матрицей
             if (item.result && typeof item.result === 'object' && item.result.data) {
-                // Отображаем матрицу в виде красивой таблицы
                 resultDisplay = `
                     <div class="history-matrix-wrapper">
                         <strong>Результат (${item.result.rows}×${item.result.cols}):</strong>
@@ -322,8 +556,18 @@ async function refreshHistory() {
                         </div>
                     </div>
                 `;
+            } else if (item.result && Array.isArray(item.result) && item.result.length > 0) {
+                // Для обратной совместимости с массивом
+                const matrixObj = { data: item.result, rows: item.result.length, cols: item.result[0].length };
+                resultDisplay = `
+                    <div class="history-matrix-wrapper">
+                        <strong>Результат (${matrixObj.rows}×${matrixObj.cols}):</strong>
+                        <div style="margin-top: 8px;">
+                            ${formatMatrixAsTable(matrixObj)}
+                        </div>
+                    </div>
+                `;
             } else {
-                // Для чисел (определитель, след)
                 resultDisplay = `
                     <div class="history-number-result">
                         <strong>Результат:</strong>
@@ -359,6 +603,8 @@ async function refreshHistory() {
 
 /**
  * ПОЛУЧИТЬ ИКОНКУ ДЛЯ ОПЕРАЦИИ
+ * @param {string} operation - API имя операции
+ * @returns {string} Класс иконки Font Awesome
  */
 function getOperationIcon(operation) {
     const op = allOperations.find(o => o.apiName === operation);
@@ -367,6 +613,7 @@ function getOperationIcon(operation) {
 
 /**
  * ПОВТОРИТЬ ОПЕРАЦИЮ ИЗ ИСТОРИИ
+ * @param {number} index - Индекс операции в истории
  */
 async function repeatOperation(index) {
     const item = currentHistory[index];
@@ -374,6 +621,7 @@ async function repeatOperation(index) {
 
     showToast(`Повтор операции: ${item.operation}`, 'info');
 
+    // Восстанавливаем первую матрицу
     if (item.matrix1) {
         const rows1 = item.matrix1.rows;
         const cols1 = item.matrix1.cols;
@@ -384,6 +632,7 @@ async function repeatOperation(index) {
         document.getElementById('checkA').checked = true;
     }
 
+    // Восстанавливаем вторую матрицу (если была)
     if (item.matrix2) {
         const rows2 = item.matrix2.rows;
         const cols2 = item.matrix2.cols;
@@ -398,6 +647,7 @@ async function repeatOperation(index) {
 
     updateUI();
 
+    // Восстанавливаем выбранную операцию
     const select = document.getElementById('choosing-operation');
     for (let i = 0; i < select.options.length; i++) {
         if (select.options[i].value === item.operation) {
@@ -406,11 +656,12 @@ async function repeatOperation(index) {
         }
     }
 
+    // Запускаем вычисление
     setTimeout(() => generateAPI(), 100);
 }
 
 /**
- * ОЧИСТКА ИСТОРИИ
+ * ОЧИСТКА ИСТОРИИ НА СЕРВЕРЕ
  */
 async function clearHistory() {
     if (!confirm('Вы уверены, что хотите очистить всю историю вычислений?')) return;
@@ -429,7 +680,11 @@ async function clearHistory() {
 }
 
 /**
- * ОТПРАВКА ЗАПРОСА
+ * ОТПРАВКА ЗАПРОСА НА СЕРВЕР ДЛЯ ВЫЧИСЛЕНИЯ
+ *
+ * ИЗМЕНЕНИЯ В ВЕРСИИ 2.1:
+ * - Добавлена поддержка матрицы B для унарных операций
+ * - Активная матрица (A или B) автоматически отправляется как matrix1
  */
 async function generateAPI() {
     if (isLoading) {
@@ -451,8 +706,9 @@ async function generateAPI() {
     let requestBody = {};
 
     const isBinary = ['ADD', 'SUB', 'MUL'].includes(operation);
-    const isUnary = ['DET', 'TRACE'].includes(operation);
+    const isUnary = ['DET', 'TRACE', 'TRANSPOSE', 'INVERSE'].includes(operation);
 
+    // Формируем запрос в зависимости от типа операции
     if (isBinary && checkA && checkB) {
         url = 'http://localhost:8080/calculate/binary';
         requestBody = {
@@ -462,11 +718,24 @@ async function generateAPI() {
         };
     } else if (isUnary && (checkA || checkB)) {
         url = 'http://localhost:8080/calculate/unary';
-        const matrixNum = checkA ? 1 : 2;
+
+        // ========== КЛЮЧЕВОЕ ИЗМЕНЕНИЕ ==========
+        // Определяем, какая матрица активна (A или B)
+        const activeMatrixNum = checkA ? 1 : 2;
+
+        // Получаем данные активной матрицы
+        const activeMatrixData = getMatrixData(activeMatrixNum);
+
+        // Всегда отправляем как matrix1 (сервер ожидает matrix1 для унарных операций)
         requestBody = {
-            matrix1: getMatrixData(matrixNum),
+            matrix1: activeMatrixData,
             matrixOperation: operation
         };
+
+        // Логируем для отладки (можно убрать в production)
+        console.log(`Унарная операция ${operation} выполняется с матрицей ${activeMatrixNum === 1 ? 'A' : 'B'}`);
+        // ========================================
+
     } else {
         showToast('Некорректный выбор операции или матриц!', 'error');
         return;
@@ -494,10 +763,12 @@ async function generateAPI() {
         showResult(result, operationName);
         showToast(`${operationName} выполнено!`, 'success');
 
+        // Обновляем историю через полсекунды
         setTimeout(() => refreshHistory(), 500);
 
     } catch (error) {
         showToast(`Ошибка: ${error.message}`, 'error');
+        console.error('Ошибка при выполнении операции:', error);
     } finally {
         isLoading = false;
         calcBtn.innerHTML = originalText;
@@ -506,11 +777,39 @@ async function generateAPI() {
 }
 
 /**
- * ИНИЦИАЛИЗАЦИЯ
+ * ИНИЦИАЛИЗАЦИЯ ПРИ ЗАГРУЗКЕ СТРАНИЦЫ
  */
 window.onload = async () => {
-    renderMatrix(1);
-    renderMatrix(2);
-    updateUI();
-    await refreshHistory();
+    renderMatrix(1);    // Отрисовываем матрицу A
+    renderMatrix(2);    // Отрисовываем матрицу B
+    updateUI();         // Настраиваем интерфейс
+    await refreshHistory(); // Загружаем историю
+
+    // Добавляем обработчики для чекбоксов, чтобы обновлять UI при их изменении
+    const checkA = document.getElementById('checkA');
+    const checkB = document.getElementById('checkB');
+
+    if (checkA) {
+        checkA.addEventListener('change', () => {
+            updateUI();
+            // Если выбрана унарная операция, показываем какая матрица активна
+            const operation = document.getElementById('choosing-operation').value;
+            const isUnary = ['DET', 'TRACE', 'TRANSPOSE', 'INVERSE'].includes(operation);
+            if (isUnary && checkA.checked) {
+                showToast('Выбрана матрица A для выполнения операции', 'info');
+            }
+        });
+    }
+
+    if (checkB) {
+        checkB.addEventListener('change', () => {
+            updateUI();
+            // Если выбрана унарная операция, показываем какая матрица активна
+            const operation = document.getElementById('choosing-operation').value;
+            const isUnary = ['DET', 'TRACE', 'TRANSPOSE', 'INVERSE'].includes(operation);
+            if (isUnary && checkB.checked) {
+                showToast('Выбрана матрица B для выполнения операции', 'info');
+            }
+        });
+    }
 };
