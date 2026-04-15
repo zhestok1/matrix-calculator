@@ -15,6 +15,18 @@ import ru.petrukhin_magera.matrix_calculator.service.MatrixService;
 
 import java.util.List;
 
+/**
+ * REST-контроллер для выполнения матричных операций.
+ * <p>
+ * Предоставляет endpoints для бинарных и унарных операций над матрицами,
+ * а также для получения и очистки истории вычислений.
+ * </p>
+ *
+ * <p>Все операции логируются с использованием SLF4J.</p>
+ *
+ * @author Petrukhin Magera Team
+ * @version 1.0
+ */
 @Slf4j
 @RestController
 @RequestMapping("/calculate")
@@ -24,11 +36,26 @@ public class MatrixController {
     private final MatrixService matrixService;
     private final HistoryService historyService;
 
+    /**
+     * Конструктор контроллера с внедрением зависимостей.
+     *
+     * @param matrixService  сервис для выполнения матричных операций
+     * @param historyService сервис для управления историей вычислений
+     */
     public MatrixController(MatrixService matrixService, HistoryService historyService) {
         this.matrixService = matrixService;
         this.historyService = historyService;
     }
 
+    /**
+     * Выполняет бинарную операцию над двумя матрицами (сложение, вычитание, умножение).
+     *
+     * <p>Поддерживаемые операции: ADD, SUB, MUL.</p>
+     *
+     * @param matrixRequestBinary объект запроса, содержащий две матрицы и тип операции
+     * @return ResponseEntity с результатом операции и HTTP статусом CREATED (201)
+     * @throws IllegalArgumentException если операция неизвестна
+     */
     @PostMapping("/binary")
     public ResponseEntity<?> binaryCalculate(
             @Valid @RequestBody MatrixRequestBinary matrixRequestBinary) {
@@ -70,6 +97,15 @@ public class MatrixController {
                 .body(result);
     }
 
+    /**
+     * Выполняет унарную операцию над одной матрицей (след, определитель, транспонирование, обратная матрица).
+     *
+     * <p>Поддерживаемые операции: TRACE, DET, TRANSPOSE, INVERSE.</p>
+     *
+     * @param matrixRequestUnary объект запроса, содержащий матрицу и тип операции
+     * @return ResponseEntity с результатом операции (число или матрица) и статусом CREATED (201)
+     * @throws IllegalArgumentException если операция неизвестна
+     */
     @PostMapping("/unary")
     public ResponseEntity<?> unaryCalculate(
             @Valid @RequestBody MatrixRequestUnary matrixRequestUnary) {
@@ -112,6 +148,11 @@ public class MatrixController {
                 .body(result);
     }
 
+    /**
+     * Возвращает историю всех выполненных операций для текущей сессии.
+     *
+     * @return ResponseEntity со списком DTO истории и статусом OK (200)
+     */
     @GetMapping("/history")
     public ResponseEntity<List<HistoryDto>> getHistory() {
         log.info("Запрос истории вычислений для текущей сессии");
@@ -122,6 +163,11 @@ public class MatrixController {
                 .body(history);
     }
 
+    /**
+     * Очищает историю вычислений для текущей сессии.
+     *
+     * @return ResponseEntity с пустым телом и статусом OK (200)
+     */
     @DeleteMapping("/history")
     public ResponseEntity<Void> clearHistory() {
         log.info("Очистка истории вычислений для текущей сессии");
@@ -132,6 +178,14 @@ public class MatrixController {
                 .build();
     }
 
+    /**
+     * Вспомогательный метод для добавления операции в историю.
+     *
+     * @param operation тип операции
+     * @param matrix1   первая матрица
+     * @param matrix2   вторая матрица (может быть null для унарных операций)
+     * @param result    результат операции
+     */
     private void addToHistory(String operation, Matrix matrix1, Matrix matrix2, Object result) {
         HistoryDto historyDto = new HistoryDto();
         historyDto.setOperation(operation);

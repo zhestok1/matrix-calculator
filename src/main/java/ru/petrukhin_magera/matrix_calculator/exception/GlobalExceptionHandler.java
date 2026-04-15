@@ -10,10 +10,30 @@ import ru.petrukhin_magera.matrix_calculator.model.dto.ExceptionDto;
 
 import java.time.LocalDateTime;
 
+/**
+ * Глобальный обработчик исключений для всего приложения.
+ * <p>
+ * Перехватывает различные типы исключений и возвращает клиенту
+ * структурированный ответ с информацией об ошибке.
+ * </p>
+ *
+ * @author Petrukhin Magera Team
+ * @version 1.0
+ */
 @Slf4j
 @ControllerAdvice
 public class GlobalExceptionHandler {
 
+    /**
+     * Обрабатывает ошибки валидации входных данных.
+     * <p>
+     * Возникает при использовании аннотаций {@link jakarta.validation.Valid}
+     * и нарушении условий валидации.
+     * </p>
+     *
+     * @param ex исключение валидации
+     * @return ResponseEntity с DTO ошибки и статусом BAD_REQUEST (400)
+     */
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ExceptionDto> handleValidationExceptions(
             MethodArgumentNotValidException ex) {
@@ -34,6 +54,16 @@ public class GlobalExceptionHandler {
                 .body(exceptionDto);
     }
 
+    /**
+     * Обрабатывает исключения, связанные с некорректными аргументами.
+     * <p>
+     * Используется для ошибок, связанных с несовместимыми размерами матриц,
+     * вырожденными матрицами и другими бизнес-ошибками.
+     * </p>
+     *
+     * @param ex исключение IllegalArgumentException
+     * @return ResponseEntity с DTO ошибки и статусом BAD_REQUEST (400)
+     */
     @ExceptionHandler(IllegalArgumentException.class)
     public ResponseEntity<ExceptionDto> handleIllegalArgumentException(
             IllegalArgumentException ex) {
@@ -51,6 +81,15 @@ public class GlobalExceptionHandler {
                 .body(exceptionDto);
     }
 
+    /**
+     * Обрабатывает все непредвиденные исключения.
+     * <p>
+     * Является "запасным" обработчиком для ошибок, не перехваченных более специфичными методами.
+     * </p>
+     *
+     * @param ex исключение общего типа
+     * @return ResponseEntity с общим сообщением об ошибке и статусом INTERNAL_SERVER_ERROR (500)
+     */
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ExceptionDto> handleGenericException(
             Exception ex) {
