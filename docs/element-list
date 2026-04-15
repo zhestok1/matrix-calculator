@@ -1,0 +1,6 @@
+ru.petrukhin_magera.matrix_calculator
+ru.petrukhin_magera.matrix_calculator.controller
+ru.petrukhin_magera.matrix_calculator.exception
+ru.petrukhin_magera.matrix_calculator.model
+ru.petrukhin_magera.matrix_calculator.model.dto
+ru.petrukhin_magera.matrix_calculator.service
